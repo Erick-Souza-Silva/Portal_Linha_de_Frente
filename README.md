@@ -1,6 +1,6 @@
-# PLF
+# Portal Linha de Frente
 
-Base de um projeto Django com o app inicial `core`.
+Portal de notícias esportivas da Linha de Frente, desenvolvido em Django.
 
 ## Executar localmente
 
