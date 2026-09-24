@@ -1,0 +1,46 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Linha de Frente: notícias, resultados e análises do mundo dos esportes.">
+    <title>Linha de Frente | Notícias esportivas</title>
+    <link rel="stylesheet" href="{% static 'Main.css' %}">
+</head>
+<body>
+    <header class="site-header">
+        <div class="topline"><div class="container topbar-content"><span>QUINTA-FEIRA, 24 DE SETEMBRO DE 2026</span><span class="live-label"><span class="live-dot"></span> AO VIVO: CENTRAL DO ESPORTE</span></div></div>
+        <div class="container masthead">
+            <button class="menu-toggle" type="button" aria-label="Abrir menu" aria-expanded="false"><span></span><span></span><span></span></button>
+            <a class="brand" href="{% url 'home' %}" aria-label="Linha de Frente - início"><span class="brand-mark">LF</span><span><strong>LINHA</strong><em>DE FRENTE</em></span></a>
+            <div class="masthead-actions"><button class="icon-button" type="button" aria-label="Pesquisar" data-search-toggle>⌕</button>{% if user.is_authenticated %}<span class="user-greeting">Olá, {{ user.username }}</span> <a class="usar-prefil" aria-label="Acessar perfil" href="{% url 'perfil' %}">⚙️</a>
+                <a class="auth-link" href="{% url 'logout' %}">Sair</a>{% else %}<a class="auth-link" href="{% url 'login' %}">Entrar</a><a class="subscribe-link" href="{% url 'cadastro' %}">CRIAR CONTA <span>↗</span></a>{% endif %}</div>
+        </div>
+        {% include 'base/menu.html' %}
+        <div class="search-panel" data-search-panel><div class="container search-inner"><label for="news-search">O que você quer encontrar?</label><input id="news-search" type="search" placeholder="Ex.: mercado da bola, NBA, Verstappen..." autocomplete="off"></div></div>
+    </header>
+
+    {% block content %}
+    <main id="inicio" class="container page-content">
+        <section class="breaking-bar" aria-label="Últimas notícias"><span class="breaking-tag">ÚLTIMAS</span><p>Mercado da bola esquenta antes da rodada decisiva do campeonato</p><time datetime="2026-09-24T14:32:00-03:00">14:32</time></section>
+        <section class="hero-grid">
+            <article class="lead-story"><div class="story-image image-stadium"><span>FUTEBOL</span></div><div class="lead-copy"><p class="eyebrow">CAMPEONATO NACIONAL</p><h1>Uma rodada para mudar tudo: os duelos que podem definir o campeonato</h1><p class="summary">Com a tabela embolada, os grandes confrontos do fim de semana prometem emoção até o último minuto.</p><div class="story-meta"><span>Por Marina Alves</span><time>há 18 min</time></div></div></article>
+            <div class="side-stories"><article class="compact-story"><div class="story-image image-court"><span>BASQUETE</span></div><div><p class="eyebrow">NBA</p><h2>As novas duplas que podem dominar a temporada</h2><time>há 42 min</time></div></article><article class="compact-story"><div class="story-image image-racing"><span>FÓRMULA 1</span></div><div><p class="eyebrow">VELOCIDADE</p><h2>Ferrari encontra ritmo e mira pódio em Singapura</h2><time>há 1 h</time></div></article></div>
+        </section>
+        <section id="empresa" class="about-section">
+            <div><p class="eyebrow">SOBRE A EMPRESA</p><h2>Informação para construir o futuro.</h2></div>
+            <div><p>A Linha de Frente é um projeto dedicado a organizar informação, contexto e participação em uma experiência digital clara e acessível.</p><p>O projeto está relacionado à proposta de gestão do futuro da Espro e reúne conteúdo, comunidade e tecnologia em um só lugar.</p><a class="about-link" href="https://github.com/anabtzz/linhadefrente" target="_blank" rel="noreferrer">Conheça o projeto no GitHub <span>↗</span></a></div>
+        </section>
+        <section class="content-layout">
+            <div class="news-column"><div class="section-heading"><div><p class="eyebrow">FIQUE POR DENTRO</p><h2>Notícias publicadas</h2></div></div><div class="news-grid" data-news-list>
+                {% for post in recent_posts %}<a class="news-card" data-category="{{ post.category|slugify }}" href="{% url 'noticia' post.slug %}"><div class="story-image image-player"><span>{{ post.category }}</span></div><div class="news-card-copy"><h3>{{ post.title }}</h3><p>{{ post.body|truncatewords:18 }}</p><time>{{ post.published_at|date:'d/m/Y H:i' }}</time></div></a>{% empty %}<p class="empty-state is-visible">Ainda não há notícias publicadas.</p>{% endfor %}
+            </div></div>
+            <aside class="scoreboard" aria-label="Resultados e próximos jogos"><div class="section-heading"><div><p class="eyebrow">PLACAR</p><h2>Jogos de hoje</h2></div><span class="live-now"><i></i> API ao vivo</span></div>{% for match in scoreboard %}<div class="match{% if match.is_live %} live-match{% endif %}"><div class="league"><span>{{ match.league }}</span><b>{{ match.status }}</b></div><div class="teams"><div><strong>{{ match.home_team }}</strong><strong>{{ match.away_team }}</strong></div><div class="{% if not match.is_live %}muted-score{% endif %}"><strong>{% if match.home_score is not None %}{{ match.home_score }}{% else %}—{% endif %}</strong><strong>{% if match.away_score is not None %}{{ match.away_score }}{% else %}—{% endif %}</strong></div></div></div>{% empty %}<p class="scoreboard-empty">Não há jogos disponíveis agora.</p>{% endfor %}<p class="scoreboard-source">Dados: ESPN</p></aside>
+        </section>
+    </main>
+    {% endblock %}
+    <footer class="site-footer" id="newsletter"><div class="container footer-content"><div><span class="brand-footer">LF</span><p>Informação esportiva com ritmo, contexto e opinião.</p></div><div class="newsletter"><p class="eyebrow">RECEBA O MELHOR DO ESPORTE</p><h2>Uma newsletter para começar o dia bem informado.</h2><form><input type="email" placeholder="seu melhor e-mail" aria-label="Seu melhor e-mail"><button type="submit">Quero receber <span>→</span></button></form></div></div><div class="container footer-bottom"><span>© 2026 Linha de Frente</span><span>Feito para quem vive o esporte.</span></div></footer>
+    <script src="{% static 'main.js' %}"></script>
+</body>
+</html>

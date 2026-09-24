@@ -1,0 +1,11 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Histórico | Linha de Frente</title><link rel="stylesheet" href="{% static 'Main.css' %}"></head>
+<body class="profile-page">
+	<header class="profile-header"><a class="brand" href="{% url 'home' %}"><span class="brand-mark">LF</span><span><strong>LINHA</strong><em>DE FRENTE</em></span></a><nav><a href="{% url 'perfil' %}">Meu perfil</a><a class="profile-logout" href="{% url 'logout' %}">Sair</a></nav></header>
+	<main class="profile-shell list-shell"><div class="list-heading"><div><p class="eyebrow">SUA LEITURA</p><h1>Histórico</h1><p>As últimas páginas e notícias que você visitou.</p></div><form method="post" action="{% url 'limpar-historico' %}">{% csrf_token %}<button class="outline-button" type="submit">Limpar histórico</button></form></div>
+		<section class="saved-list">{% for item in history %}<article class="saved-item"><span class="saved-type">{{ item.content_type|capfirst }}</span><div><h2>{% if item.content_object %}{{ item.content_object.title }}{% else %}Conteúdo removido{% endif %}</h2><time>{{ item.visited_at|date:'d/m/Y às H:i' }}</time></div></article>{% empty %}<div class="empty-profile"><span>◷</span><h2>Seu histórico está vazio</h2><p>As notícias que você visitar aparecerão aqui.</p><a href="{% url 'home' %}">Explorar notícias →</a></div>{% endfor %}</section>
+	</main>
+</body>
+</html>

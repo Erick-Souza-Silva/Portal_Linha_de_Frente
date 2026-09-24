@@ -1,0 +1,9 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Favoritos | Linha de Frente</title><link rel="stylesheet" href="{% static 'Main.css' %}"></head>
+<body class="profile-page">
+    <header class="profile-header"><a class="brand" href="{% url 'home' %}"><span class="brand-mark">LF</span><span><strong>LINHA</strong><em>DE FRENTE</em></span></a><nav><a href="{% url 'perfil' %}">Meu perfil</a><a class="profile-logout" href="{% url 'logout' %}">Sair</a></nav></header>
+    <main class="profile-shell list-shell"><div class="list-heading"><div><p class="eyebrow">COLEÇÃO PESSOAL</p><h1>Favoritos</h1><p>Suas notícias salvas para ler quando quiser.</p></div></div><section class="saved-list">{% for item in favorites %}<article class="saved-item favorite-item"><span class="saved-type">★ {{ item.content_type|capfirst }}</span><div><h2>{% if item.content_object %}{{ item.content_object.title }}{% else %}Conteúdo removido{% endif %}</h2><time>Salvo em {{ item.created_at|date:'d/m/Y' }}</time></div></article>{% empty %}<div class="empty-profile"><span>★</span><h2>Nenhum favorito ainda</h2><p>Salve as notícias que você não quer perder.</p><a href="{% url 'home' %}">Explorar notícias →</a></div>{% endfor %}</section></main>
+</body>
+</html>

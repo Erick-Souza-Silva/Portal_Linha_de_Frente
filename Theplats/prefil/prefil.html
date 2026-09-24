@@ -1,0 +1,18 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfil | Linha de Frente</title>
+    <link rel="stylesheet" href="{% static 'Main.css' %}">
+</head>
+<body class="profile-page">
+    <header class="profile-header"><a class="brand" href="{% url 'home' %}"><span class="brand-mark">LF</span><span><strong>LINHA</strong><em>DE FRENTE</em></span></a><nav><a href="{% url 'home' %}">Portal</a><a class="profile-logout" href="{% url 'logout' %}">Sair</a></nav></header>
+    <main class="profile-shell">
+        <section class="profile-hero"><div><p class="eyebrow">ÁREA DO LEITOR</p><h1>Olá, {{ user.username }}.</h1><p>Seu espaço para guardar histórias e retomar o que você estava lendo.</p></div><div class="profile-avatar">{{ user.username|first|upper }}</div></section>
+        <section class="profile-stats"><div><strong>{{ favorite_count }}</strong><span>Favoritos</span></div><div><strong>{{ history_count }}</strong><span>Itens no histórico</span></div><div><strong>{{ user.date_joined|date:'d/m/Y' }}</strong><span>Membro desde</span></div></section>
+        <section class="profile-actions"><a href="{% url 'favorito' %}"><span class="action-icon">★</span><strong>Meus favoritos</strong><small>Notícias que você salvou</small><b>→</b></a><a href="{% url 'historico' %}"><span class="action-icon">◷</span><strong>Histórico de leitura</strong><small>Continue de onde parou</small><b>→</b></a>{% if user.is_staff %}<a href="{% url 'admin-dashboard' %}"><span class="action-icon">⌘</span><strong>Painel administrativo</strong><small>Gerencie o portal</small><b>→</b></a>{% endif %}</section>
+    </main>
+</body>
+</html>

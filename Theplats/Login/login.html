@@ -1,0 +1,25 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entrar | Linha de Frente</title>
+    <link rel="stylesheet" href="{% static 'Main.css' %}">
+</head>
+<body class="auth-page">
+    <main class="auth-layout">
+        <section class="auth-intro"><a class="brand auth-brand" href="{% url 'home' %}"><span class="brand-mark">LF</span><span><strong>LINHA</strong><em>DE FRENTE</em></span></a><p class="eyebrow">INFORMAÇÃO QUE JOGA JUNTO</p><h1>O esporte fica melhor quando você está por dentro.</h1><p>Entre para acompanhar seus assuntos favoritos e receber as principais notícias da rodada.</p><a class="back-link" href="{% url 'home' %}">← Voltar para o portal</a></section>
+        <section class="auth-card"><div class="auth-card-heading"><p class="eyebrow">BEM-VINDO DE VOLTA</p><h2>Entrar na sua conta</h2><p>Acesse seu perfil da Linha de Frente.</p></div>
+            <form method="post" class="auth-form" novalidate>
+                {% csrf_token %}
+                {% for error in form.non_field_errors %}<div class="form-error">{{ error }}</div>{% endfor %}
+                <div class="form-field"><label for="id_username">Usuário</label>{{ form.username }}{% for error in form.username.errors %}<small>{{ error }}</small>{% endfor %}</div>
+                <div class="form-field"><label for="id_password">Senha</label>{{ form.password }}{% for error in form.password.errors %}<small>{{ error }}</small>{% endfor %}</div>
+                <button class="auth-submit" type="submit">Entrar <span>→</span></button>
+            </form>
+            <p class="auth-switch">Ainda não tem uma conta? <a href="{% url 'cadastro' %}">Cadastre-se</a></p>
+        </section>
+    </main>
+</body>
+</html>

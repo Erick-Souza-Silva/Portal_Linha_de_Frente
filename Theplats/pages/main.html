@@ -1,0 +1,40 @@
+{% extends 'base/index.html' %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="description" content="Linha de Frente: notícias, resultados e análises do mundo dos esportes.">
+	<title>Linha de Frente | Notícias esportivas</title>
+	<link rel="stylesheet" href="{% static 'Main.css' %}">
+</head>
+<body>
+	<header class="site-header">
+		<div class="topline"><div class="container topbar-content"><span>QUINTA-FEIRA, 24 DE SETEMBRO DE 2026</span><span class="live-label"><span class="live-dot"></span> AO VIVO: CENTRAL DO ESPORTE</span></div></div>
+		<div class="container masthead">
+			<button class="menu-toggle" type="button" aria-label="Abrir menu" aria-expanded="false"><span></span><span></span><span></span></button>
+			<a class="brand" href="{% url 'home' %}" aria-label="Linha de Frente - início"><span class="brand-mark">LF</span><span><strong>LINHA</strong><em>DE FRENTE</em></span></a>
+			<div class="masthead-actions"><button class="icon-button" type="button" aria-label="Pesquisar" data-search-toggle>⌕</button>{% if user.is_authenticated %}<span class="user-greeting">Olá, {{ user.username }}</span> <a class="usar-prefil" aria-label="Acessar perfil" href="{% url 'perfil' %}">⚙️</a>
+				<a class="auth-link" href="{% url 'logout' %}">Sair</a>{% else %}<a class="auth-link" href="{% url 'login' %}">Entrar</a><a class="subscribe-link" href="{% url 'cadastro' %}">CRIAR CONTA <span>↗</span></a>{% endif %}</div>
+		</div>
+	</header>
+	<main id="inicio" class="container page-content">
+		<section class="breaking-bar" aria-label="Últimas notícias"><span class="breaking-tag">ÚLTIMAS</span><p>Mercado da bola esquenta antes da rodada decisiva do campeonato</p><time datetime="2026-09-24T14:32:00-03:00">14:32</time></section>
+		<section class="hero-grid">
+			<article class="lead-story"><div class="story-image image-stadium"><span>FUTEBOL</span></div><div class="lead-copy"><p class="eyebrow">CAMPEONATO NACIONAL</p><h1>Uma rodada para mudar tudo: os duelos que podem definir o campeonato</h1><p class="summary">Com a tabela embolada, os grandes confrontos do fim de semana prometem emoção até o último minuto.</p><div class="story-meta"><span>Por Marina Alves</span><time>há 18 min</time></div></div></article>
+			<div class="side-stories"><article class="compact-story"><div class="story-image image-court"><span>BASQUETE</span></div><div><p class="eyebrow">NBA</p><h2>As novas duplas que podem dominar a temporada</h2><time>há 42 min</time></div></article><article class="compact-story"><div class="story-image image-racing"><span>FÓRMULA 1</span></div><div><p class="eyebrow">VELOCIDADE</p><h2>Ferrari encontra ritmo e mira pódio em Singapura</h2><time>há 1 h</time></div></article></div>
+		</section>
+		<section class="content-layout">
+			<div class="news-column"><div class="section-heading"><div><p class="eyebrow">FIQUE POR DENTRO</p><h2>Notícias em destaque</h2></div><a href="#mais">Ver todas <span>→</span></a></div><div class="news-grid" data-news-list>
+				<article class="news-card" data-category="futebol"><div class="story-image image-player"><span>FUTEBOL</span></div><div class="news-card-copy"><h3>Craque renova contrato e confirma permanência até 2030</h3><p>Clubes se movimentam nos bastidores para a próxima janela.</p><time>há 2 h</time></div></article>
+				<article class="news-card" data-category="tenis"><div class="story-image image-tennis"><span>TÊNIS</span></div><div class="news-card-copy"><h3>Brasileira avança e encara favorita nas quartas de final</h3><p>Partida acontece nesta sexta-feira, às 10h.</p><time>há 3 h</time></div></article>
+				<article class="news-card" data-category="basquete"><div class="story-image image-arena"><span>BASQUETE</span></div><div class="news-card-copy"><h3>Seleção divulga convocados para os próximos amistosos</h3><p>Lista mistura experiência e jovens promessas.</p><time>há 4 h</time></div></article>
+			</div><p class="empty-state" data-empty-state>Nenhuma notícia encontrada.</p></div>
+			<aside class="scoreboard" aria-label="Resultados e próximos jogos"><div class="section-heading"><div><p class="eyebrow">PLACAR</p><h2>Jogos de hoje</h2></div><span class="live-now"><i></i> ao vivo</span></div><div class="match live-match"><div class="league"><span>BRASILEIRÃO</span><b>2º TEMPO</b></div><div class="teams"><div><strong>Flamengo</strong><strong>Palmeiras</strong></div><div><strong>2</strong><strong>1</strong></div></div><div class="match-minute">68'</div></div><div class="match"><div class="league"><span>LA LIGA</span><b>18:00</b></div><div class="teams"><div><strong>Barcelona</strong><strong>Sevilla</strong></div><div class="muted-score"><strong>—</strong><strong>—</strong></div></div></div><div class="match"><div class="league"><span>NBA • PRÉ-TEMPORADA</span><b>21:30</b></div><div class="teams"><div><strong>Celtics</strong><strong>Warriors</strong></div><div class="muted-score"><strong>—</strong><strong>—</strong></div></div></div><a class="all-scores" href="#placar">Ver tabela completa <span>→</span></a></aside>
+		</section>
+	</main>
+	<footer class="site-footer" id="newsletter"><div class="container footer-content"><div><span class="brand-footer">LF</span><p>Informação esportiva com ritmo, contexto e opinião.</p></div><div class="newsletter"><p class="eyebrow">RECEBA O MELHOR DO ESPORTE</p><h2>Uma newsletter para começar o dia bem informado.</h2><form><input type="email" placeholder="seu melhor e-mail" aria-label="Seu melhor e-mail"><button type="submit">Quero receber <span>→</span></button></form></div></div><div class="container footer-bottom"><span>© 2026 Linha de Frente</span><span>Feito para quem vive o esporte.</span></div></footer>
+	<script src="{% static 'main.js' %}"></script>
+</body>
+</html>

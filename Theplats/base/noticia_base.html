@@ -1,0 +1,17 @@
+{% extends 'base/index.html' %}
+
+{% block title %}{{ post.title }} | Linha de Frente{% endblock %}
+
+{% block content %}
+<main class="container article-shell">
+    <article class="news-article">
+        <header class="article-header">
+            <p class="eyebrow">{{ post.category }}</p>
+            <h1>{{ post.title }}</h1>
+            <div class="article-meta"><span>Por {{ post.author.get_full_name|default:post.author.username }}</span><time>{{ post.published_at|date:'d/m/Y H:i' }}</time></div>
+        </header>
+        {% if post.cover_image %}<img class="article-cover" src="{{ post.cover_image }}" alt="">{% endif %}
+        <div class="article-body">{{ post.body|linebreaks }}</div>
+    </article>
+</main>
+{% endblock %}

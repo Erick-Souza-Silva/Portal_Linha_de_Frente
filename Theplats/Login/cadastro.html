@@ -1,0 +1,27 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Criar conta | Linha de Frente</title>
+    <link rel="stylesheet" href="{% static 'Main.css' %}">
+</head>
+<body class="auth-page">
+    <main class="auth-layout">
+        <section class="auth-intro"><a class="brand auth-brand" href="{% url 'home' %}"><span class="brand-mark">LF</span><span><strong>LINHA</strong><em>DE FRENTE</em></span></a><p class="eyebrow">SEU LUGAR NO JOGO</p><h1>Faça parte da nossa torcida.</h1><p>Crie seu perfil para acompanhar as histórias que fazem o esporte acontecer.</p><a class="back-link" href="{% url 'home' %}">← Voltar para o portal</a></section>
+        <section class="auth-card"><div class="auth-card-heading"><p class="eyebrow">PRIMEIRO PASSO</p><h2>Criar sua conta</h2><p>É rápido, gratuito e leva menos de um minuto.</p></div>
+            <form method="post" class="auth-form" novalidate>
+                {% csrf_token %}
+                {% if form.non_field_errors %}<div class="form-error">Confira os dados informados.</div>{% endif %}
+                <div class="form-field"><label for="id_username">Nome de usuário</label>{{ form.username }}{% for error in form.username.errors %}<small>{{ error }}</small>{% endfor %}</div>
+                <div class="form-field"><label for="id_email">E-mail</label>{{ form.email }}{% for error in form.email.errors %}<small>{{ error }}</small>{% endfor %}</div>
+                <div class="form-field"><label for="id_password1">Senha</label>{{ form.password1 }}{% for error in form.password1.errors %}<small>{{ error }}</small>{% endfor %}</div>
+                <div class="form-field"><label for="id_password2">Confirme sua senha</label>{{ form.password2 }}{% for error in form.password2.errors %}<small>{{ error }}</small>{% endfor %}</div>
+                <button class="auth-submit" type="submit">Criar conta <span>→</span></button>
+            </form>
+            <p class="auth-switch">Já tem uma conta? <a href="{% url 'login' %}">Entrar</a></p>
+        </section>
+    </main>
+</body>
+</html>
