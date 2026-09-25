@@ -2,6 +2,13 @@
 
 Portal de notícias esportivas da Linha de Frente, desenvolvido em Django.
 
+## Site principal
+Esse portal faz parte do site principal do Linha de Frente:
+
+```git
+https://github.com/anabtzz/linhadefrente
+```
+
 ## Executar localmente
 
 ```bash
