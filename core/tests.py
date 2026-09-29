@@ -1,5 +1,6 @@
 from django.test import TestCase
 from django.contrib.auth.models import User
+import pyotp
 
 from .models import EmailVerificationToken, Post
 
@@ -45,6 +46,27 @@ class AuthenticationTests(TestCase):
 
         self.assertRedirects(verify_response, '/login/')
         self.assertTrue(User.objects.get(username='torcedor').is_active)
+        self.assertTrue(User.objects.get(username='torcedor').security_profile.email_verified)
+
+    def test_mfa_is_required_and_accepts_valid_code(self):
+        user = User.objects.create_user(username='mfa-user', password='UmaSenhaForte123!')
+        profile = user.security_profile
+        profile.mfa_secret = pyotp.random_base32()
+        profile.mfa_enabled = True
+        profile.save(update_fields=['mfa_secret', 'mfa_enabled'])
+
+        login_response = self.client.post('/login/', {
+            'username': 'mfa-user',
+            'password': 'UmaSenhaForte123!',
+        })
+        self.assertRedirects(login_response, '/seguranca/mfa/verificar/')
+        self.assertFalse(login_response.wsgi_request.user.is_authenticated)
+
+        verify_response = self.client.post('/seguranca/mfa/verificar/', {
+            'code': pyotp.TOTP(profile.mfa_secret).now(),
+        })
+        self.assertRedirects(verify_response, '/')
+        self.assertTrue(verify_response.wsgi_request.user.is_authenticated)
 
     def test_user_can_logout(self):
         user = User.objects.create_user(username='leitor', password='UmaSenhaForte123!')

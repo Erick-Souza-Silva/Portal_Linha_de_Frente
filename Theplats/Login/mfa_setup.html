@@ -1,0 +1,30 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Segurança da conta | Linha de Frente</title>
+    <link rel="stylesheet" href="{% static 'Main.css' %}">
+</head>
+<body class="auth-page">
+    <main class="auth-layout">
+        <section class="auth-intro"><a class="brand auth-brand" href="{% url 'home' %}"><span class="brand-mark">LF</span><span><strong>LINHA</strong><em>DE FRENTE</em></span></a><p class="eyebrow">PROTEJA SUA CONTA</p><h1>Use um segundo fator no seu login.</h1><p>O MFA impede o acesso mesmo que sua senha seja descoberta.</p><a class="back-link" href="{% url 'perfil' %}">← Voltar para o perfil</a></section>
+        <section class="auth-card">
+            {% if enabled %}
+                <div class="auth-card-heading"><p class="eyebrow">ATIVO</p><h2>MFA ativado</h2><p>Sua conta já exige o código do aplicativo autenticador ao entrar.</p></div>
+            {% else %}
+                <div class="auth-card-heading"><p class="eyebrow">CONFIGURAÇÃO</p><h2>Ativar autenticação em dois fatores</h2><p>Adicione esta chave no Google Authenticator, Microsoft Authenticator ou outro app compatível.</p></div>
+                <p class="mfa-secret"><strong>Chave:</strong> {{ secret }}</p>
+                <p class="mfa-uri"><strong>URI de configuração:</strong> {{ provisioning_uri }}</p>
+                <form method="post" class="auth-form" novalidate>
+                    {% csrf_token %}
+                    {% for error in form.code.errors %}<div class="form-error">{{ error }}</div>{% endfor %}
+                    <div class="form-field"><label for="id_code">Código gerado pelo app</label>{{ form.code }}</div>
+                    <button class="auth-submit" type="submit">Ativar MFA <span>→</span></button>
+                </form>
+            {% endif %}
+        </section>
+    </main>
+</body>
+</html>

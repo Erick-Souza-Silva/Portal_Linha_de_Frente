@@ -1,0 +1,1 @@
+- [Produção no Replit](replit-production.md) — PostgreSQL usa `DATABASE_URL`; o proxy termina HTTPS e o Publish sincroniza o schema de produção.

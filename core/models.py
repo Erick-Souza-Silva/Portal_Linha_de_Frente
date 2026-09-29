@@ -1,6 +1,6 @@
-import secrets
 import uuid
 
+import pyotp
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
@@ -33,7 +33,7 @@ class SecurityProfile(models.Model):
 		self.refresh_from_db(fields=['session_version'])
 
 	def enable_mfa(self):
-		self.mfa_secret = self.mfa_secret or secrets.token_hex(10).upper()
+		self.mfa_secret = self.mfa_secret or pyotp.random_base32()
 		self.mfa_enabled = True
 		self.save(update_fields=['mfa_secret', 'mfa_enabled'])
 

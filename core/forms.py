@@ -5,6 +5,22 @@ from django.contrib.auth.models import User
 from .models import Post
 
 
+class MFAForm(forms.Form):
+    code = forms.CharField(
+        label='Código de autenticação',
+        min_length=6,
+        max_length=6,
+        strip=True,
+        widget=forms.TextInput(attrs={'inputmode': 'numeric', 'autocomplete': 'one-time-code'}),
+    )
+
+    def clean_code(self):
+        code = self.cleaned_data['code']
+        if not code.isdigit():
+            raise forms.ValidationError('Informe os 6 números do seu aplicativo autenticador.')
+        return code
+
+
 class RegistrationForm(UserCreationForm):
     email = forms.EmailField(label='E-mail')
 

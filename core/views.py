@@ -1,9 +1,12 @@
 from datetime import timedelta
 
+import pyotp
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.core.mail import send_mail
 from django.http import JsonResponse
@@ -12,10 +15,12 @@ from django.urls import reverse
 from django.utils.text import slugify
 from django.utils import timezone
 
-from .forms import PostForm, RegistrationForm
+from .forms import MFAForm, PostForm, RegistrationForm
 from .models import AccessLog, BrowsingHistory, Comment, EmailVerificationToken, Favorite, Post, SecurityProfile
 from .security import clear_login_failures, client_ip, is_login_locked, register_login_failure
 from .sports import fetch_scoreboard
+
+MFA_PENDING_USER_SESSION_KEY = 'mfa_pending_user_id'
 
 
 def home(request):
@@ -43,9 +48,11 @@ def _is_admin_portal_user(user):
 
 @login_required
 def profile_view(request):
+    security_profile = request.user.security_profile
     return render(request, 'prefil/prefil.html', {
         'favorite_count': request.user.favorites.count(),
         'history_count': request.user.browsing_history.count(),
+        'mfa_enabled': security_profile.mfa_enabled,
     })
 
 
@@ -120,12 +127,71 @@ def login_view(request):
             form.add_error(None, 'Muitas tentativas. Aguarde 15 minutos e tente novamente.')
         elif form.is_valid():
             clear_login_failures(identifier, ip_address)
-            auth_login(request, form.get_user())
-            request.session['security_session_version'] = form.get_user().security_profile.session_version
-            return redirect('home')
+            user = form.get_user()
+            profile = user.security_profile
+            if profile.mfa_enabled:
+                request.session[MFA_PENDING_USER_SESSION_KEY] = user.pk
+                request.session.set_expiry(300)
+                return redirect('mfa-verify')
+            auth_login(request, user)
+            request.session['security_session_version'] = profile.session_version
+            return redirect(request.POST.get('next') or 'home')
         else:
             register_login_failure(identifier, ip_address)
     return render(request, 'Login/login.html', {'form': form})
+
+
+def mfa_verify(request):
+    user_id = request.session.get(MFA_PENDING_USER_SESSION_KEY)
+    if not user_id:
+        return redirect('login')
+
+    form = MFAForm(request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        user = get_object_or_404(User, pk=user_id, is_active=True)
+        profile = user.security_profile
+        if profile.mfa_enabled and profile.mfa_secret and pyotp.TOTP(profile.mfa_secret).verify(
+            form.cleaned_data['code'],
+            valid_window=1,
+        ):
+            request.session.pop(MFA_PENDING_USER_SESSION_KEY, None)
+            auth_login(request, user)
+            request.session['security_session_version'] = profile.session_version
+            return redirect('home')
+        form.add_error('code', 'Código inválido ou expirado.')
+
+    return render(request, 'Login/mfa_verify.html', {'form': form})
+
+
+@login_required
+def mfa_setup(request):
+    profile = request.user.security_profile
+    if profile.mfa_enabled:
+        return render(request, 'Login/mfa_setup.html', {'enabled': True})
+
+    if not profile.mfa_secret:
+        profile.mfa_secret = pyotp.random_base32()
+        profile.save(update_fields=['mfa_secret'])
+
+    form = MFAForm(request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        if pyotp.TOTP(profile.mfa_secret).verify(form.cleaned_data['code'], valid_window=1):
+            profile.mfa_enabled = True
+            profile.save(update_fields=['mfa_enabled'])
+            messages.success(request, 'A autenticação em dois fatores foi ativada.')
+            return redirect('perfil')
+        form.add_error('code', 'Código inválido ou expirado.')
+
+    provisioning_uri = pyotp.TOTP(profile.mfa_secret).provisioning_uri(
+        name=request.user.email or request.user.username,
+        issuer_name='Linha de Frente',
+    )
+    return render(request, 'Login/mfa_setup.html', {
+        'form': form,
+        'secret': profile.mfa_secret,
+        'provisioning_uri': provisioning_uri,
+        'enabled': False,
+    })
 
 
 def cadastro(request):
@@ -142,7 +208,7 @@ def cadastro(request):
         send_mail(
             'Confirme seu e-mail | Linha de Frente',
             f'Confirme sua conta acessando: {verification_url}',
-            None,
+            settings.DEFAULT_FROM_EMAIL,
             [user.email],
         )
         messages.success(request, 'Conta criada. Confira seu e-mail para ativá-la.')
@@ -157,6 +223,10 @@ def verify_email(request, token):
         return redirect('login')
     verification.user.is_active = True
     verification.user.save(update_fields=['is_active'])
+    SecurityProfile.objects.update_or_create(
+        user=verification.user,
+        defaults={'email_verified': True},
+    )
     verification.used_at = timezone.now()
     verification.save(update_fields=['used_at'])
     messages.success(request, 'E-mail confirmado. Agora você já pode entrar.')
