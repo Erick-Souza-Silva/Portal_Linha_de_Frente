@@ -22,12 +22,19 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 ENVIRONMENT = os.getenv('DJANGO_ENV', 'development').lower()
-SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'local-development-key-7b9f4a2c6d8e1f3a5b7c9d2e4f6a8b0c')
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY') or os.getenv(
+    'SESSION_SECRET',
+    'local-development-key-7b9f4a2c6d8e1f3a5b7c9d2e4f6a8b0c',
+)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DJANGO_DEBUG', 'true' if ENVIRONMENT != 'production' else 'false').lower() == 'true'
 
-ALLOWED_HOSTS = [host.strip() for host in os.getenv('DJANGO_ALLOWED_HOSTS', '127.0.0.1,localhost').split(',') if host.strip()]
+allowed_hosts = os.getenv(
+    'DJANGO_ALLOWED_HOSTS',
+    '*' if ENVIRONMENT != 'production' else '127.0.0.1,localhost',
+)
+ALLOWED_HOSTS = [host.strip() for host in allowed_hosts.split(',') if host.strip()]
 
 
 # Application definition
@@ -131,6 +138,7 @@ CSRF_COOKIE_SAMESITE = 'Lax'
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'DENY'
 SECURE_SSL_REDIRECT = ENVIRONMENT == 'production'
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SECURE_HSTS_SECONDS = 31536000 if ENVIRONMENT == 'production' else 0
 SECURE_HSTS_INCLUDE_SUBDOMAINS = ENVIRONMENT == 'production'
 SECURE_HSTS_PRELOAD = ENVIRONMENT == 'production'
