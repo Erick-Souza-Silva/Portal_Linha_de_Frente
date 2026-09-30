@@ -1,5 +1,8 @@
+from datetime import timedelta
+
 from django.test import TestCase
 from django.contrib.auth.models import User
+from django.utils import timezone
 import pyotp
 
 from .models import EmailVerificationToken, Post
@@ -47,6 +50,48 @@ class AuthenticationTests(TestCase):
         self.assertRedirects(verify_response, '/login/')
         self.assertTrue(User.objects.get(username='torcedor').is_active)
         self.assertTrue(User.objects.get(username='torcedor').security_profile.email_verified)
+
+    def test_expired_email_verification_token_does_not_activate_user(self):
+        user = User.objects.create_user(
+            username='expirado',
+            email='expirado@example.com',
+            password='UmaSenhaForte123!',
+            is_active=False,
+        )
+        token = EmailVerificationToken.objects.create(
+            user=user,
+            expires_at=timezone.now() - timedelta(minutes=1),
+        )
+
+        response = self.client.get(f'/verificar-email/{token.token}/')
+
+        self.assertRedirects(response, '/login/')
+        user.refresh_from_db()
+        token.refresh_from_db()
+        self.assertFalse(user.is_active)
+        self.assertIsNone(token.used_at)
+
+    def test_email_verification_token_cannot_be_reused(self):
+        user = User.objects.create_user(
+            username='unico',
+            email='unico@example.com',
+            password='UmaSenhaForte123!',
+            is_active=False,
+        )
+        token = EmailVerificationToken.objects.create(
+            user=user,
+            expires_at=timezone.now() + timedelta(hours=1),
+        )
+
+        first_response = self.client.get(f'/verificar-email/{token.token}/')
+        second_response = self.client.get(f'/verificar-email/{token.token}/')
+
+        self.assertRedirects(first_response, '/login/')
+        self.assertRedirects(second_response, '/login/')
+        user.refresh_from_db()
+        token.refresh_from_db()
+        self.assertTrue(user.is_active)
+        self.assertIsNotNone(token.used_at)
 
     def test_mfa_is_required_and_accepts_valid_code(self):
         user = User.objects.create_user(username='mfa-user', password='UmaSenhaForte123!')
