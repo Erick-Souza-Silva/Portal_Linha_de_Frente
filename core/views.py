@@ -16,7 +16,7 @@ from django.utils.text import slugify
 from django.utils import timezone
 
 from .forms import MFAForm, PostForm, RegistrationForm
-from .models import AccessLog, BrowsingHistory, Comment, EmailVerificationToken, Favorite, Post, SecurityProfile
+from .models import AccessLog, BrowsingHistory, Category, Comment, EmailVerificationToken, Favorite, Post, SecurityProfile
 from .security import clear_login_failures, client_ip, is_login_locked, register_login_failure
 from .sports import fetch_scoreboard
 
@@ -24,15 +24,22 @@ MFA_PENDING_USER_SESSION_KEY = 'mfa_pending_user_id'
 
 
 def home(request):
+    posts = Post.objects.filter(is_published=True).select_related('author', 'category')
+    category_slug = request.GET.get('categoria', '').strip()
+    if category_slug:
+        posts = posts.filter(category__slug=category_slug)
+    recent_posts = list(posts[:6])
     return render(request, 'pages/main.html', {
-        'recent_posts': Post.objects.filter(is_published=True).select_related('author')[:6],
+        'recent_posts': recent_posts,
+        'featured_post': recent_posts[0] if recent_posts else None,
+        'active_category': category_slug,
         'scoreboard': fetch_scoreboard(),
     })
 
 
 def post_detail(request, slug):
     post = get_object_or_404(Post, slug=slug, is_published=True)
-    return render(request, 'pages/notica.html', {'post': post})
+    return render(request, 'pages/notica.html', {'post': post, 'categories': Category.objects.filter(is_active=True)})
 
 
 def _is_admin_portal_user(user):

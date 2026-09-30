@@ -5,6 +5,7 @@ from django.contrib.auth.models import User
 from .models import (
     AccessLog,
     BrowsingHistory,
+    Category,
     Comment,
     EmailVerificationToken,
     Favorite,
@@ -17,6 +18,15 @@ from .models import (
 
 
 admin.site.unregister(User)
+
+
+@admin.register(Category)
+class CategoryAdmin(admin.ModelAdmin):
+    list_display = ('name', 'slug', 'is_active', 'order')
+    list_filter = ('is_active',)
+    search_fields = ('name', 'slug')
+    prepopulated_fields = {'slug': ('name',)}
+    ordering = ('order', 'name')
 
 
 @admin.register(User)

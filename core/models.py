@@ -6,6 +6,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.utils import timezone
+from django.utils.text import slugify
 
 
 class SecurityProfile(models.Model):
@@ -61,8 +62,34 @@ class ContentBase(models.Model):
 		self.save(update_fields=['is_published', 'published_at', 'updated_at'])
 
 
+class Category(models.Model):
+	name = models.CharField(max_length=80, unique=True)
+	slug = models.SlugField(max_length=90, unique=True, blank=True)
+	is_active = models.BooleanField(default=True)
+	order = models.PositiveIntegerField(default=0)
+
+	class Meta:
+		ordering = ('order', 'name')
+		verbose_name = 'categoria'
+		verbose_name_plural = 'categorias'
+
+	def save(self, *args, **kwargs):
+		if not self.slug:
+			self.slug = slugify(self.name)
+		super().save(*args, **kwargs)
+
+	def __str__(self):
+		return self.name
+
+
 class Post(ContentBase):
-	category = models.CharField(max_length=80, default='Esportes')
+	category = models.ForeignKey(
+		Category,
+		on_delete=models.PROTECT,
+		related_name='posts',
+		null=True,
+		blank=True,
+	)
 
 	def __str__(self):
 		return self.title

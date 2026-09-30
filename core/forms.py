@@ -2,7 +2,15 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 
-from .models import Post
+from .models import Category, Post
+
+
+class CategoryChoiceField(forms.ModelChoiceField):
+    def to_python(self, value):
+        if isinstance(value, str) and value.strip() and not value.isdigit():
+            category, _ = Category.objects.get_or_create(name=value.strip())
+            return category
+        return super().to_python(value)
 
 
 class MFAForm(forms.Form):
@@ -30,6 +38,8 @@ class RegistrationForm(UserCreationForm):
 
 
 class PostForm(forms.ModelForm):
+    category = CategoryChoiceField(queryset=Category.objects.filter(is_active=True), label='Categoria')
+
     class Meta:
         model = Post
         fields = ('title', 'category', 'body', 'cover_image', 'is_published')
