@@ -233,6 +233,7 @@ class UserAreaTests(TestCase):
         dashboard_response = self.client.get('/painel/')
 
         self.assertEqual(dashboard_response.status_code, 200)
+        self.assertEqual(self.client.get('/painel/noticias/nova/').status_code, 200)
         response = self.client.post('/painel/', {
             'title': 'Publicação da redação',
             'category': 'Futebol',

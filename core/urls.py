@@ -4,6 +4,7 @@ from .views import (
     admin_dashboard,
     cadastro,
     clear_history,
+    create_post_view,
     favorites_view,
     health_check,
     history_view,
@@ -39,4 +40,5 @@ urlpatterns = [
     path('prefil/favoritos/', favorites_view, name='favorito-legacy'),
     path('prefil/favoritos/post/<int:post_id>/', toggle_favorite, name='alternar-favorito-legacy'),
     path('painel/', admin_dashboard, name='admin-dashboard'),
+    path('painel/noticias/nova/', create_post_view, name='criar-noticia'),
 ]

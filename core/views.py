@@ -101,11 +101,21 @@ def _can_publish_posts(user):
     return user.is_staff or user.is_superuser or user.has_perm('core.publish_post')
 
 
+def _can_add_posts(user):
+    try:
+        profile = user.security_profile
+        role_allows_creation = profile.role in (SecurityProfile.ROLE_ADMIN, SecurityProfile.ROLE_MODERATOR)
+    except SecurityProfile.DoesNotExist:
+        role_allows_creation = False
+    return user.is_staff or user.is_superuser or user.has_perm('core.add_post') or role_allows_creation
+
+
 @login_required
 def profile_view(request):
     return render(request, 'prefil/prefil.html', {
         'favorite_count': request.user.favorites.count(),
         'history_count': request.user.browsing_history.count(),
+        'can_add_post': _can_add_posts(request.user),
     })
 
 
@@ -182,6 +192,33 @@ def admin_dashboard(request):
         'access_count': AccessLog.objects.count(),
         'recent_posts': Post.objects.select_related('author')[:6],
         'post_form': post_form,
+    })
+
+
+@user_passes_test(_can_add_posts, login_url='login')
+def create_post_view(request):
+    post_form = PostForm(request.POST or None)
+    if request.method == 'POST' and post_form.is_valid():
+        post = post_form.save(commit=False)
+        if post.is_published and not _can_publish_posts(request.user):
+            post_form.add_error('is_published', 'Seu grupo pode criar rascunhos, mas não pode publicar notícias.')
+        else:
+            post.author = request.user
+            base_slug = slugify(post.title) or 'noticia'
+            post.slug = base_slug
+            suffix = 2
+            while Post.objects.filter(slug=post.slug).exists():
+                post.slug = f'{base_slug}-{suffix}'
+                suffix += 1
+            if post.is_published:
+                post.published_at = timezone.now()
+            post.save()
+            messages.success(request, 'Notícia criada com sucesso.')
+            return redirect('noticia', slug=post.slug)
+
+    return render(request, 'admin/post_create.html', {
+        'post_form': post_form,
+        'can_publish': _can_publish_posts(request.user),
     })
 
 

@@ -1,0 +1,17 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adicionar notícia | Linha de Frente</title>
+    <link rel="stylesheet" href="{% static 'Main.css' %}">
+</head>
+<body class="admin-page">
+    <header class="admin-header"><a class="brand" href="{% url 'home' %}"><span class="brand-mark">LF</span><span><strong>LINHA</strong><em>DE FRENTE</em></span></a><div><a href="{% url 'perfil' %}">Voltar ao perfil</a><a href="{% url 'logout' %}">Sair</a></div></header>
+    <main class="admin-shell">
+        <div class="admin-title"><div><p class="eyebrow">REDAÇÃO</p><h1>Adicionar notícia</h1><p>Crie uma notícia, escolha a categoria e adicione a imagem de capa.</p></div><a class="admin-button" href="{% url 'admin-dashboard' %}">Painel administrativo</a></div>
+        <section class="admin-panel editor-panel"><form method="post" class="post-form">{% csrf_token %}{% for error in post_form.non_field_errors %}<p class="form-error">{{ error }}</p>{% endfor %}{% for field in post_form %}<div class="admin-field{% if field.name == 'is_published' %} checkbox-field{% endif %}">{{ field }}<label for="{{ field.id_for_label }}">{{ field.label }}</label>{% for error in field.errors %}<small>{{ error }}</small>{% endfor %}</div>{% endfor %}<button class="admin-button" type="submit">Salvar notícia</button></form></section>
+    </main>
+</body>
+</html>
