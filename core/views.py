@@ -138,7 +138,7 @@ def login_view(request):
             return redirect(request.POST.get('next') or 'home')
         else:
             register_login_failure(identifier, ip_address)
-    return render(request, 'Login/login.html', {'form': form})
+    return render(request, 'auth/auth.html', {'form': form})
 
 
 def mfa_verify(request):
@@ -160,7 +160,7 @@ def mfa_verify(request):
             return redirect('home')
         form.add_error('code', 'Código inválido ou expirado.')
 
-    return render(request, 'Login/mfa_verify.html', {'form': form})
+    return render(request, 'auth/auth.html', {'form': form})
 
 
 @login_required
