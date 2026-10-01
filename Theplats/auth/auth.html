@@ -1,0 +1,30 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verificação em duas etapas | Linha de Frente</title>
+    <link rel="stylesheet" href="{% static 'Main.css' %}">
+</head>
+<body class="auth-page">
+    <main class="auth-layout">
+        <section class="auth-intro"><a class="brand auth-brand" href="{% url 'home' %}"><span class="brand-mark">LF</span><span><strong>LINHA</strong><em>DE FRENTE</em></span></a><p class="eyebrow">SEGURANÇA DA CONTA</p><h1>Mais uma etapa para confirmar que é você.</h1><p>Abra seu aplicativo autenticador e informe o código de seis dígitos.</p><a class="back-link" href="{% url 'login' %}">← Voltar para o login</a></section>
+        <section class="auth-card">
+            <div class="auth-card-heading">
+                <p class="eyebrow">AUTENTICAÇÃO EM DOIS FATORES</p>
+                <h2>Digite seu código</h2>
+                <p>O código muda a cada poucos segundos.</p>
+            </div>
+            <form method="post" class="auth-form" novalidate>
+                {% csrf_token %}
+                <div class="form-field">
+                    {% for error in form.code.errors %}<div class="form-error">{{ error }}</div>{% endfor %}
+                    <label for="id_code">Código de seis dígitos</label>
+                    {{ form.code }}
+                </div>
+                <button class="auth-submit" type="submit">Confirmar <span>→</span></button>
+            </form>
+        </section>
+    </main>
+</html>

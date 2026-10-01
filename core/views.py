@@ -6,6 +6,8 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from django.contrib.auth.views import redirect_to_login
+from django.views.decorators.http import require_POST
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.core.mail import send_mail
@@ -15,7 +17,7 @@ from django.urls import reverse
 from django.utils.text import slugify
 from django.utils import timezone
 
-from .forms import MFAForm, PostForm, RegistrationForm
+from .forms import CommentForm, MFAForm, PostForm, RegistrationForm
 from .models import AccessLog, BrowsingHistory, Category, Comment, EmailVerificationToken, Favorite, Post, SecurityProfile
 from .security import clear_login_failures, client_ip, is_login_locked, register_login_failure
 from .sports import fetch_scoreboard
@@ -39,7 +41,41 @@ def home(request):
 
 def post_detail(request, slug):
     post = get_object_or_404(Post, slug=slug, is_published=True)
-    return render(request, 'pages/notica.html', {'post': post, 'categories': Category.objects.filter(is_active=True)})
+    if request.method == 'POST':
+        if not request.user.is_authenticated:
+            return redirect_to_login(request.get_full_path())
+        comment_form = CommentForm(request.POST)
+        if comment_form.is_valid():
+            comment = comment_form.save(commit=False)
+            comment.post = post
+            comment.author = request.user
+            comment.save()
+            messages.success(request, 'Comentário publicado com sucesso.')
+            return redirect('noticia', slug=post.slug)
+    else:
+        comment_form = CommentForm()
+
+    content_type = ContentType.objects.get_for_model(Post)
+    if request.user.is_authenticated:
+        BrowsingHistory.objects.update_or_create(
+            user=request.user,
+            content_type=content_type,
+            object_id=post.pk,
+        )
+        is_favorite = Favorite.objects.filter(
+            user=request.user,
+            content_type=content_type,
+            object_id=post.pk,
+        ).exists()
+    else:
+        is_favorite = False
+
+    return render(request, 'pages/notica.html', {
+        'post': post,
+        'comments': post.comments.filter(is_visible=True).select_related('author'),
+        'comment_form': comment_form,
+        'is_favorite': is_favorite,
+    })
 
 
 def _is_admin_portal_user(user):
@@ -55,11 +91,9 @@ def _is_admin_portal_user(user):
 
 @login_required
 def profile_view(request):
-    security_profile = request.user.security_profile
     return render(request, 'prefil/prefil.html', {
         'favorite_count': request.user.favorites.count(),
         'history_count': request.user.browsing_history.count(),
-        'mfa_enabled': security_profile.mfa_enabled,
     })
 
 
@@ -83,6 +117,7 @@ def clear_history(request):
 
 
 @login_required
+@require_POST
 def toggle_favorite(request, post_id):
     post = get_object_or_404(Post, pk=post_id, is_published=True)
     content_type = ContentType.objects.get_for_model(Post)
@@ -167,7 +202,7 @@ def mfa_verify(request):
             return redirect('home')
         form.add_error('code', 'Código inválido ou expirado.')
 
-    return render(request, 'Login/mfa_verify.html', {'form': form})
+    return render(request, 'auth/auth.html', {'form': form})
 
 
 @login_required
@@ -241,11 +276,9 @@ def verify_email(request, token):
 
 
 def logout_view(request):
+    request.session.pop(MFA_PENDING_USER_SESSION_KEY, None)
     auth_logout(request)
     return redirect('home')
 
 def health_check(request):
     return JsonResponse({'status': 'ok'})
-from django.shortcuts import render
-
-# Create your views here.
