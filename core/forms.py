@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 
-from .models import Post
+from .models import Comment, Post
 
 
 class MFAForm(forms.Form):
@@ -27,6 +27,19 @@ class RegistrationForm(UserCreationForm):
     class Meta:
         model = User
         fields = ('username', 'email', 'password1', 'password2')
+
+
+class CommentForm(forms.ModelForm):
+    class Meta:
+        model = Comment
+        fields = ('body',)
+        labels = {'body': 'Seu comentário'}
+        widgets = {
+            'body': forms.Textarea(attrs={
+                'rows': 4,
+                'placeholder': 'Compartilhe sua opinião sobre esta notícia',
+            }),
+        }
 
 
 class PostForm(forms.ModelForm):

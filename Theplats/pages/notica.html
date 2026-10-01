@@ -12,6 +12,46 @@
 		</header>
 		{% if post.cover_image %}<img class="article-cover" src="{{ post.cover_image }}" alt="">{% endif %}
 		<div class="article-body">{{ post.body|linebreaks }}</div>
+		<section class="article-actions" aria-label="Ações da notícia">
+			{% if user.is_authenticated %}
+				<form method="post" action="{% url 'alternar-favorito' post.id %}">
+					{% csrf_token %}
+					<input type="hidden" name="next" value="{{ request.path }}">
+					<button class="favorite-button{% if is_favorite %} is-active{% endif %}" type="submit">
+						<span aria-hidden="true">★</span>{% if is_favorite %}Remover dos favoritos{% else %}Adicionar aos favoritos{% endif %}
+					</button>
+				</form>
+			{% else %}
+				<a class="favorite-button" href="{% url 'login' %}?next={{ request.path|urlencode }}"><span aria-hidden="true">★</span>Entrar para favoritar</a>
+				<p>Entre na sua conta para salvar esta notícia e comentar.</p>
+			{% endif %}
+		</section>
+		<section class="comments-section" aria-labelledby="comments-title">
+			<div class="section-heading"><h2 id="comments-title">Comentários</h2><span>{{ comments|length }}</span></div>
+			{% if user.is_authenticated %}
+				<form method="post" class="comment-form" novalidate>
+					{% csrf_token %}
+					<div class="form-field">
+						{{ comment_form.body.label_tag }}
+						{{ comment_form.body }}
+						{% for error in comment_form.body.errors %}<small>{{ error }}</small>{% endfor %}
+					</div>
+					<button class="auth-submit" type="submit">Publicar comentário <span>→</span></button>
+				</form>
+			{% else %}
+				<p class="comment-login">Faça <a href="{% url 'login' %}?next={{ request.path|urlencode }}">login</a> para participar da conversa.</p>
+			{% endif %}
+			<div class="comments-list">
+				{% for comment in comments %}
+					<article class="comment-item">
+						<div class="comment-meta"><strong>{{ comment.author.username }}</strong><time>{{ comment.created_at|date:'d/m/Y H:i' }}</time></div>
+						<p>{{ comment.body|linebreaksbr }}</p>
+					</article>
+				{% empty %}
+					<p class="comments-empty">Ainda não há comentários. Seja o primeiro a participar.</p>
+				{% endfor %}
+			</div>
+		</section>
 	</article>
 </main>
 {% endblock %}

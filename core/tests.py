@@ -143,6 +143,49 @@ class UserAreaTests(TestCase):
         self.assertEqual(self.client.get('/perfil/historico/').status_code, 200)
         self.assertEqual(self.client.get('/perfil/favoritos/').status_code, 200)
 
+    def test_authenticated_user_can_comment_favorite_and_create_history(self):
+        post = Post.objects.create(
+            title='Notícia para interação',
+            slug='noticia-para-interacao',
+            body='Conteúdo da notícia.',
+            author=self.user,
+            is_published=True,
+            published_at=timezone.now(),
+        )
+        self.client.force_login(self.user)
+
+        response = self.client.get(f'/noticia/{post.slug}/')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self.user.browsing_history.count(), 1)
+
+        comment_response = self.client.post(f'/noticia/{post.slug}/', {
+            'body': 'Minha opinião sobre a notícia.',
+        })
+        self.assertRedirects(comment_response, f'/noticia/{post.slug}/')
+        self.assertEqual(post.comments.count(), 1)
+        self.assertEqual(post.comments.get().author, self.user)
+
+        favorite_response = self.client.post(f'/perfil/favoritos/post/{post.pk}/', {
+            'next': f'/noticia/{post.slug}/',
+        })
+        self.assertRedirects(favorite_response, f'/noticia/{post.slug}/')
+        self.assertEqual(self.user.favorites.count(), 1)
+
+    def test_anonymous_user_cannot_comment(self):
+        post = Post.objects.create(
+            title='Notícia pública',
+            slug='noticia-publica',
+            body='Conteúdo público.',
+            author=self.user,
+            is_published=True,
+            published_at=timezone.now(),
+        )
+
+        response = self.client.post(f'/noticia/{post.slug}/', {'body': 'Comentário anônimo.'})
+
+        self.assertRedirects(response, f'/login/?next=/noticia/{post.slug}/')
+        self.assertEqual(post.comments.count(), 0)
+
     def test_anonymous_user_is_redirected_from_user_area(self):
         response = self.client.get('/perfil/historico/')
 
