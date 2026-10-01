@@ -1,6 +1,7 @@
 from datetime import timedelta
 
 from django.test import TestCase
+from django.contrib.auth.models import Group, Permission
 from django.contrib.auth.models import User
 from django.utils import timezone
 import pyotp
@@ -219,3 +220,26 @@ class UserAreaTests(TestCase):
         self.assertEqual(post.author, self.user)
         self.assertTrue(post.is_published)
         self.assertContains(self.client.get(f'/noticia/{post.slug}/'), post.body)
+
+    def test_group_permissions_grant_editorial_access_without_staff_flag(self):
+        group = Group.objects.create(name='Redação')
+        group.permissions.set(Permission.objects.filter(
+            content_type__app_label='core',
+            codename__in=('view_post', 'add_post', 'publish_post'),
+        ))
+        self.user.groups.add(group)
+        self.client.force_login(self.user)
+
+        dashboard_response = self.client.get('/painel/')
+
+        self.assertEqual(dashboard_response.status_code, 200)
+        response = self.client.post('/painel/', {
+            'title': 'Publicação da redação',
+            'category': 'Futebol',
+            'body': 'Texto publicado por um grupo editorial.',
+            'cover_image': '',
+            'is_published': 'on',
+        })
+
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(Post.objects.get(title='Publicação da redação').is_published)

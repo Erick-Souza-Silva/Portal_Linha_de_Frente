@@ -7,6 +7,7 @@ from django.contrib.auth import authenticate, login as auth_login, logout as aut
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.contrib.auth.views import redirect_to_login
+from django.core.exceptions import PermissionDenied
 from django.views.decorators.http import require_POST
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
@@ -83,10 +84,21 @@ def _is_admin_portal_user(user):
         profile = user.security_profile
     except SecurityProfile.DoesNotExist:
         profile = None
-    return user.is_authenticated and (user.is_staff or user.is_superuser or getattr(profile, 'role', None) in (
+    portal_permissions = (
+        'core.view_post',
+        'core.add_post',
+        'core.change_post',
+        'core.delete_post',
+        'core.publish_post',
+    )
+    return user.is_authenticated and (user.is_staff or user.is_superuser or any(user.has_perm(permission) for permission in portal_permissions) or getattr(profile, 'role', None) in (
         SecurityProfile.ROLE_ADMIN,
         SecurityProfile.ROLE_MODERATOR,
     ))
+
+
+def _can_publish_posts(user):
+    return user.is_staff or user.is_superuser or user.has_perm('core.publish_post')
 
 
 @login_required
@@ -135,7 +147,20 @@ def admin_dashboard(request):
 
     post_form = PostForm(request.POST or None)
     if request.method == 'POST' and post_form.is_valid():
+        if not request.user.has_perm('core.add_post') and not request.user.is_staff and not request.user.is_superuser:
+            raise PermissionDenied
         post = post_form.save(commit=False)
+        if post.is_published and not _can_publish_posts(request.user):
+            post_form.add_error('is_published', 'Seu grupo pode criar rascunhos, mas não pode publicar notícias.')
+            return render(request, 'admin/desboord.html', {
+                'user_count': User.objects.count(),
+                'post_count': Post.objects.count(),
+                'published_count': Post.objects.filter(is_published=True).count(),
+                'comment_count': Comment.objects.count(),
+                'access_count': AccessLog.objects.count(),
+                'recent_posts': Post.objects.select_related('author')[:6],
+                'post_form': post_form,
+            })
         post.author = request.user
         base_slug = slugify(post.title) or 'noticia'
         post.slug = base_slug

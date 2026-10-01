@@ -91,6 +91,11 @@ class Post(ContentBase):
 		blank=True,
 	)
 
+	class Meta:
+		permissions = (
+			('publish_post', 'Pode publicar notícias'),
+		)
+
 	def __str__(self):
 		return self.title
 

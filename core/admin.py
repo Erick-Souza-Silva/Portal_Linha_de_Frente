@@ -38,6 +38,9 @@ class PortalUserAdmin(UserAdmin):
 
 @admin.action(description='Publicar itens selecionados')
 def publish_items(modeladmin, request, queryset):
+    if not request.user.has_perm('core.publish_post') and not request.user.is_staff and not request.user.is_superuser:
+        modeladmin.message_user(request, 'Seu grupo não possui permissão para publicar notícias.', level='error')
+        return
     for item in queryset:
         item.publish()
 
