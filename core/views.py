@@ -48,11 +48,9 @@ def _is_admin_portal_user(user):
 
 @login_required
 def profile_view(request):
-    security_profile = request.user.security_profile
     return render(request, 'prefil/prefil.html', {
         'favorite_count': request.user.favorites.count(),
         'history_count': request.user.browsing_history.count(),
-        'mfa_enabled': security_profile.mfa_enabled,
     })
 
 
