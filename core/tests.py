@@ -248,7 +248,11 @@ class UserAreaTests(TestCase):
         self.assertTrue(post.pdf_file.name.startswith('anexos/noticias/machismo-no-futebol'))
         article_response = self.client.get(f'/noticia/{post.slug}/')
         self.assertContains(article_response, 'Leia o levantamento completo sobre machismo no futebol.')
-        self.assertContains(article_response, post.pdf_file.url)
+        pdf_response = self.client.get(f'/noticia/{post.slug}/pdf/')
+        self.assertEqual(pdf_response.status_code, 200)
+        self.assertEqual(pdf_response['Content-Type'], 'application/pdf')
+
+        post.pdf_file.delete(save=False)
 
     def test_group_permissions_grant_editorial_access_without_staff_flag(self):
         group = Group.objects.create(name='Redação')

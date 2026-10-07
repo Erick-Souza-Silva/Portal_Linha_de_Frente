@@ -14,6 +14,7 @@ from .views import (
     mfa_setup,
     mfa_verify,
     post_detail,
+    post_pdf,
     profile_view,
     toggle_favorite,
     verify_email,
@@ -22,6 +23,7 @@ from .views import (
 urlpatterns = [
     path('', home, name='home'),
     path('noticia/<slug:slug>/', post_detail, name='noticia'),
+    path('noticia/<slug:slug>/pdf/', post_pdf, name='noticia-pdf'),
     path('health/', health_check, name='health-check'),
     path('login/', login_view, name='login'),
     path('cadastro/', cadastro, name='cadastro'),

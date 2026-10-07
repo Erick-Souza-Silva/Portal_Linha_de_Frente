@@ -12,7 +12,7 @@ from django.views.decorators.http import require_POST
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.core.mail import send_mail
-from django.http import JsonResponse
+from django.http import FileResponse, Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.text import slugify
@@ -77,6 +77,17 @@ def post_detail(request, slug):
         'comment_form': comment_form,
         'is_favorite': is_favorite,
     })
+
+
+def post_pdf(request, slug):
+    post = get_object_or_404(Post, slug=slug, is_published=True)
+    if not post.pdf_file:
+        raise Http404
+    try:
+        pdf_file = post.pdf_file.open('rb')
+    except FileNotFoundError:
+        raise Http404
+    return FileResponse(pdf_file, content_type='application/pdf')
 
 
 def _is_admin_portal_user(user):
