@@ -90,6 +90,8 @@ class Post(ContentBase):
 		null=True,
 		blank=True,
 	)
+	pdf_file = models.FileField(upload_to='anexos/noticias/', blank=True)
+	pdf_description = models.CharField(max_length=180, blank=True)
 
 	class Meta:
 		permissions = (

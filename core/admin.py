@@ -47,11 +47,15 @@ def publish_items(modeladmin, request, queryset):
 
 @admin.register(Post)
 class PostAdmin(admin.ModelAdmin):
-    list_display = ('title', 'category', 'author', 'is_published', 'published_at', 'updated_at')
+    list_display = ('title', 'category', 'has_pdf', 'author', 'is_published', 'published_at', 'updated_at')
     list_filter = ('category', 'is_published')
     search_fields = ('title', 'body', 'slug')
     prepopulated_fields = {'slug': ('title',)}
     actions = (publish_items,)
+
+    @admin.display(boolean=True, description='PDF')
+    def has_pdf(self, obj):
+        return bool(obj.pdf_file)
 
 
 @admin.register(Page)

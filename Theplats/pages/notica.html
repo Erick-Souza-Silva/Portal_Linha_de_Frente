@@ -12,6 +12,16 @@
 		</header>
 		{% if post.cover_image %}<img class="article-cover" src="{{ post.cover_image }}" alt="">{% endif %}
 		<div class="article-body">{{ post.body|linebreaks }}</div>
+		{% if post.pdf_file %}
+		<section class="article-pdf" aria-labelledby="pdf-title">
+			<div>
+				<p class="eyebrow">LEITURA COMPLEMENTAR</p>
+				<h2 id="pdf-title">{{ post.pdf_description|default:'Leia o material completo em PDF' }}</h2>
+				<p>Consulte o documento anexado a esta notícia.</p>
+			</div>
+			<a class="auth-submit" href="{{ post.pdf_file.url }}" target="_blank" rel="noopener">Abrir PDF <span>↗</span></a>
+		</section>
+		{% endif %}
 		<section class="article-actions" aria-label="Ações da notícia">
 			{% if user.is_authenticated %}
 				<form method="post" action="{% url 'alternar-favorito' post.id %}">

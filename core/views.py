@@ -155,7 +155,7 @@ def toggle_favorite(request, post_id):
 def admin_dashboard(request):
     from django.contrib.auth.models import User
 
-    post_form = PostForm(request.POST or None)
+    post_form = PostForm(request.POST or None, request.FILES or None)
     if request.method == 'POST' and post_form.is_valid():
         if not request.user.has_perm('core.add_post') and not request.user.is_staff and not request.user.is_superuser:
             raise PermissionDenied
@@ -197,7 +197,7 @@ def admin_dashboard(request):
 
 @user_passes_test(_can_add_posts, login_url='login')
 def create_post_view(request):
-    post_form = PostForm(request.POST or None)
+    post_form = PostForm(request.POST or None, request.FILES or None)
     if request.method == 'POST' and post_form.is_valid():
         post = post_form.save(commit=False)
         if post.is_published and not _can_publish_posts(request.user):

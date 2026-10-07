@@ -52,17 +52,33 @@ class CommentForm(forms.ModelForm):
 
 class PostForm(forms.ModelForm):
     category = CategoryChoiceField(queryset=Category.objects.filter(is_active=True), label='Categoria')
+    pdf_file = forms.FileField(
+        required=False,
+        label='Anexo PDF',
+        help_text='Opcional. Envie somente arquivos PDF de até 10 MB.',
+    )
 
     class Meta:
         model = Post
-        fields = ('title', 'category', 'body', 'cover_image', 'is_published')
+        fields = ('title', 'category', 'body', 'cover_image', 'pdf_file', 'pdf_description', 'is_published')
         labels = {
             'title': 'Título',
             'category': 'Categoria',
             'body': 'Texto da notícia',
             'cover_image': 'Imagem de capa (URL)',
+            'pdf_description': 'Descrição do PDF',
             'is_published': 'Publicar agora',
         }
         widgets = {
             'body': forms.Textarea(attrs={'rows': 8}),
         }
+
+    def clean_pdf_file(self):
+        pdf_file = self.cleaned_data.get('pdf_file')
+        if not pdf_file:
+            return pdf_file
+        if not pdf_file.name.lower().endswith('.pdf'):
+            raise forms.ValidationError('O anexo precisa estar no formato PDF.')
+        if pdf_file.size > 10 * 1024 * 1024:
+            raise forms.ValidationError('O PDF não pode ultrapassar 10 MB.')
+        return pdf_file

@@ -1,6 +1,7 @@
 from datetime import timedelta
 
 from django.test import TestCase
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.contrib.auth.models import Group, Permission
 from django.contrib.auth.models import User
 from django.utils import timezone
@@ -220,6 +221,34 @@ class UserAreaTests(TestCase):
         self.assertEqual(post.author, self.user)
         self.assertTrue(post.is_published)
         self.assertContains(self.client.get(f'/noticia/{post.slug}/'), post.body)
+
+    def test_staff_can_publish_news_with_pdf_and_category(self):
+        self.user.is_staff = True
+        self.user.save(update_fields=['is_staff'])
+        self.client.force_login(self.user)
+        pdf = SimpleUploadedFile(
+            'machismo-no-futebol.pdf',
+            b'%PDF-1.4\nmaterial de leitura\n%%EOF',
+            content_type='application/pdf',
+        )
+
+        response = self.client.post('/painel/', {
+            'title': 'O jogo que ainda não é para elas',
+            'category': 'Futebol',
+            'body': 'Uma notícia sobre esporte e gênero.',
+            'cover_image': '',
+            'pdf_file': pdf,
+            'pdf_description': 'Leia o levantamento completo sobre machismo no futebol.',
+            'is_published': 'on',
+        })
+
+        post = Post.objects.get(title='O jogo que ainda não é para elas')
+        self.assertRedirects(response, f'/noticia/{post.slug}/')
+        self.assertEqual(post.category.name, 'Futebol')
+        self.assertTrue(post.pdf_file.name.startswith('anexos/noticias/machismo-no-futebol'))
+        article_response = self.client.get(f'/noticia/{post.slug}/')
+        self.assertContains(article_response, 'Leia o levantamento completo sobre machismo no futebol.')
+        self.assertContains(article_response, post.pdf_file.url)
 
     def test_group_permissions_grant_editorial_access_without_staff_flag(self):
         group = Group.objects.create(name='Redação')
